@@ -27,7 +27,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch]
-    [Route("/listening")]
+    [Route("listening")]
     public async Task<IActionResult> UpdateListeningDevice([FromBody] UpdateListeningCommand command)
     {
         await mediator.Send(command);
