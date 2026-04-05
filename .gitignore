@@ -1,0 +1,56 @@
+# Visual Studio and Rider
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Package directories
+packages/
+node_modules/
+
+# Database files
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# Project files
+*.csproj.user
+*.vcxproj.user
+*.shproj.user
+*.vbproj.user
+*.fsproj.user
+
+# Miscellaneous
+*.log
+*.bak
+*.tmp
+*.pdb
+*.dll
+*.exe
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Local settings (exclude sensitive or local-only settings)
+appsettings*.json
+!appsettings.Development.json
+Properties/launchSettings.json
+
+# EF Core Migrations (exclude generated designer files and snapshot, keep migration files)
+Migrations/*.Designer.cs
+Migrations/*Snapshot.cs
