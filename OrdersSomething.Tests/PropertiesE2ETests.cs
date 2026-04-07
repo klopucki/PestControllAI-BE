@@ -14,8 +14,6 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
     [Fact]
     public async Task GetAllProperties_GivenExistingData_ShouldReturnListOfProperties()
     {
-        // Given - seeded data -- todo change it
-        
         // When
         var response = await _client.GetAsync("/api/Properties");
 
@@ -28,17 +26,18 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
     [Fact]
     public async Task GetPropertyById_GivenValidId_ShouldReturnProperty()
     {
-        // Given - seeded data -- todo change it
+        // Given
         var validId = new Guid("11111111-1111-1111-1111-111111111111");
 
-        // When
-        var response = await _client.GetAsync($"/api/Properties/{validId}");
-
-        // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var property = await response.Content.ReadFromJsonAsync<PropertiesDto>();
-        property.Should().NotBeNull();
-        property!.Id.Should().Be(validId);
+        // When & Then
+        await TestHelper.WaitUntil(async () =>
+        {
+            var response = await _client.GetAsync($"/api/Properties/{validId}");
+            if (response.StatusCode != HttpStatusCode.OK) return false;
+            
+            var property = await response.Content.ReadFromJsonAsync<PropertiesDto>();
+            return property != null && property.Id == validId;
+        }, "Property should be returned by Id");
     }
 
     [Fact]
@@ -56,13 +55,15 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
 
         // When
         var response = await _client.PostAsJsonAsync("/api/Properties", command);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Then
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
-        var allResponse = await _client.GetAsync("/api/Properties");
-        var all = await allResponse.Content.ReadFromJsonAsync<List<PropertiesDto>>();
-        all.Should().Contain(p => p.Name == command.Name);
+        await TestHelper.WaitUntil(async () =>
+        {
+            var allResponse = await _client.GetAsync("/api/Properties");
+            var all = await allResponse.Content.ReadFromJsonAsync<List<PropertiesDto>>();
+            return all != null && all.Any(p => p.Name == command.Name);
+        }, "New property should be visible in the list");
     }
 
     [Fact]
@@ -81,14 +82,17 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
 
         // When
         var response = await _client.PutAsJsonAsync("/api/Properties", command);
-
-        // Then
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify update
-        var getResponse = await _client.GetAsync($"/api/Properties/{targetId}");
-        var updated = await getResponse.Content.ReadFromJsonAsync<PropertiesDto>();
-        updated!.Name.Should().Be(command.Name);
+        // Then
+        await TestHelper.WaitUntil(async () =>
+        {
+            var getResponse = await _client.GetAsync($"/api/Properties/{targetId}");
+            if (getResponse.StatusCode != HttpStatusCode.OK) return false;
+            
+            var updated = await getResponse.Content.ReadFromJsonAsync<PropertiesDto>();
+            return updated?.Name == command.Name;
+        }, "Property name should be updated");
     }
 
     [Fact]
@@ -104,12 +108,16 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
 
         // When
         var response = await _client.PatchAsJsonAsync("/api/Properties", command);
-
-        // Then
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var getResponse = await _client.GetAsync($"/api/Properties/{targetId}");
-        var property = await getResponse.Content.ReadFromJsonAsync<PropertiesDto>();
-        property!.IsDeleted.Should().BeTrue();
+        // Then
+        await TestHelper.WaitUntil(async () =>
+        {
+            var getResponse = await _client.GetAsync($"/api/Properties/{targetId}");
+            if (getResponse.StatusCode != HttpStatusCode.OK) return false;
+            
+            var property = await getResponse.Content.ReadFromJsonAsync<PropertiesDto>();
+            return property?.IsDeleted == true;
+        }, "Property should be marked as deleted");
     }
 }
