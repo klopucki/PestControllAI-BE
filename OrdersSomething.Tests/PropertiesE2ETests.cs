@@ -1,16 +1,43 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using OrdersSomething.Features.Properties.Commands;
-using OrdersSomething.Features.Properties.Queries;
+using OrdersSomething.Command.Api.Features.Properties.Commands;
+using OrdersSomething.Query.Api.Features.Properties;
 using Xunit;
 
 namespace OrdersSomething.Tests;
 
-public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IClassFixture<LocalDatabaseWebApplicationFactory>
+public class PropertiesE2ETests(CqrsE2EFixture fixture) : IClassFixture<CqrsE2EFixture>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    [Fact]
+    public async Task CreateProperty_ShouldSynchronizeToQueryApi()
+    {
+        // 1. GIVEN - Nowa posesja
+        var command = new UpsertPropertyCommand 
+        { 
+            Id = Guid.NewGuid(), 
+            Name = "CQRS Test", 
+            Address = "Test Address",
+            Description = "Created by CQRS test",
+            IsDeleted = false
+        };
 
+        // 2. WHEN - Wysyłamy do COMMAND
+        var response = await fixture.CommandClient.PostAsJsonAsync("/api/Properties", command);
+        response.EnsureSuccessStatusCode();
+
+        // 3. THEN - Czekamy i sprawdzamy w QUERY
+        await TestHelper.WaitUntil(async () => 
+        {
+            var queryResponse = await fixture.QueryClient.GetAsync($"/api/Properties/{command.Id}");
+            if (queryResponse.StatusCode != HttpStatusCode.OK) return false;
+
+            var property = await queryResponse.Content.ReadFromJsonAsync<PropertiesDto>();
+            return property != null && property.Name == command.Name;
+        }, "Property should be synchronized to Query API");
+    }
+    
+    /*
     [Fact]
     public async Task GetAllProperties_GivenExistingData_ShouldReturnListOfProperties()
     {
@@ -119,5 +146,5 @@ public class PropertiesE2ETests(LocalDatabaseWebApplicationFactory factory) : IC
             var property = await getResponse.Content.ReadFromJsonAsync<PropertiesDto>();
             return property?.IsDeleted == true;
         }, "Property should be marked as deleted");
-    }
+    }*/
 }

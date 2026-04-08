@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OrdersSomething.Query.Api\OrdersSomething.Query.Api.csproj" />
+    <ProjectReference Include="..\OrdersSomething.Command.Api\OrdersSomething.Command.Api.csproj" />
   </ItemGroup>
 
 </Project>

@@ -74,3 +74,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+namespace OrdersSomething.Query.Api
+{
+    public partial class Program { }
+}

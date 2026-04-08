@@ -65,3 +65,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+namespace OrdersSomething.Command.Api
+{
+    public partial class Program { }
+}

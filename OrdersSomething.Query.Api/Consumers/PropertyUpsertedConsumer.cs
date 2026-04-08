@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
-using OrdersSomething.Query.Api.Models; // Poprawiona przestrzeń nazw
+using OrdersSomething.Query.Api.Models; 
 
 namespace OrdersSomething.Query.Api.Consumers;
 
@@ -18,7 +18,6 @@ public class PropertyUpsertedConsumer(MyDbContext dbContext) : IConsumer<Propert
             property = new Properties
             {
                 Id = message.Id,
-                // W bazie Query również musimy mieć UserId, jeśli to ten sam schemat
                 UserId = new Guid("99999999-9999-9999-9999-999999999991") 
             };
             dbContext.Properties.Add(property);
