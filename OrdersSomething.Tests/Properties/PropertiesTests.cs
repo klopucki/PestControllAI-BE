@@ -87,17 +87,4 @@ public class PropertiesTests(HttpClientFixture fixture) : PropertiesFixtures(fix
         // then
         PropertiesAssertions.AssertNotFound(response);
     }
-
-    [Fact]
-    public async Task ShouldNotModifyStatusAndThrowEntityNotFoundException()
-    {
-        // given
-        var propertyId = Guid.NewGuid();
-
-        // when
-        var response = await GetPropertyByIdHttpClient(propertyId);
-
-        // then
-        PropertiesAssertions.AssertNotFound(response);
-    }
 }
