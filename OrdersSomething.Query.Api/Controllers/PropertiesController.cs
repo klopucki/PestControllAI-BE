@@ -9,7 +9,7 @@ namespace OrdersSomething.Query.Api.Controllers;
 public class PropertiesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() 
     {
         var query = new GetAllPropertiesQuery();
         var result = await mediator.Send(query);

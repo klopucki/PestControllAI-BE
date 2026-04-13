@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using OrdersSomething.Command.Api;
 using OrdersSomething.Core.Events;
+using OrdersSomething.Core.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,7 @@ builder.Services.AddMassTransit(x =>
     x.AddRider(rider =>
     {
         rider.AddProducer<PropertyUpsertedEvent>("property-upserted-topic");
+        rider.AddProducer<PropertyDeletedEvent>("property-deleted-topic");
 
         rider.UsingKafka((context, k) =>
         {
@@ -46,6 +48,9 @@ builder.Services.AddCors(options => {
 });
 
 var app = builder.Build();
+
+// 5. Error handler (Middleware)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseRouting();
 app.UseCors("AllowAll");

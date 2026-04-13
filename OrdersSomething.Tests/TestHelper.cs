@@ -5,17 +5,29 @@ namespace OrdersSomething.Tests;
 public static class TestHelper
 {
     /// <summary>
-    /// Helper method to wait for eventual consistency.
-    /// Retries the provided condition for up to 15 seconds.
+    /// Wait until assertion success or timeout exceeded.
     /// </summary>
-    public static async Task WaitUntil(Func<Task<bool>> condition, string message, int timeoutSeconds = 15)
+    /// <param name="action">Assert function</param>
+    /// <param name="timeoutSeconds">Timeout in seconds with default value 15s</param>
+    public static async Task WaitUntil(Func<Task> action, int timeoutSeconds = 15)
     {
         var start = DateTime.UtcNow;
+        Exception? lastException = null;
+
         while (DateTime.UtcNow - start < TimeSpan.FromSeconds(timeoutSeconds))
         {
-            if (await condition()) return;
-            await Task.Delay(500); // Wait 500ms between retries
+            try
+            {
+                await action();
+                return; // Sukces! Asercje przeszły.
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                await Task.Delay(500); // Czekaj przed ponowieniem
+            }
         }
-        throw new XunitException($"Timeout: {message} within {timeoutSeconds}s");
+
+        throw new XunitException($"Timeout: Assertion failed within {timeoutSeconds}s. Last error: {lastException?.Message}", lastException);
     }
 }

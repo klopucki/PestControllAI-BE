@@ -6,7 +6,7 @@ using Xunit;
 
 namespace OrdersSomething.Tests;
 
-public class DevicesE2ETests(CqrsE2EFixture fixture) : IClassFixture<CqrsE2EFixture>
+public class DevicesE2ETests(HttpClientFixture fixture) : IClassFixture<HttpClientFixture>
 {
 
     /*

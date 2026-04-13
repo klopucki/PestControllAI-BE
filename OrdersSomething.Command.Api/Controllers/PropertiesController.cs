@@ -11,19 +11,19 @@ public class PropertiesController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertPropertyCommand command)
     {
-        await mediator.Send(command);
-        return Ok();
+        var upsertPropertyResponse = await mediator.Send(command);
+        return Ok(upsertPropertyResponse);
     }
 
     [HttpPut]
     public async Task<IActionResult> Modify([FromBody] UpsertPropertyCommand command)
     {
-        await mediator.Send(command);
-        return Ok();
+        var upsertPropertyResponse = await mediator.Send(command);
+        return Ok(upsertPropertyResponse);
     }
 
     [HttpPatch]
-    public async Task<IActionResult> UpdateStatus([FromBody] DeletePropertyCommand command)
+    public async Task<IActionResult> ModifyStatus([FromBody] DeletePropertyCommand command)
     {
         await mediator.Send(command);
         return Ok();

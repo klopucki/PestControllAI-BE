@@ -5,9 +5,9 @@ using OrdersSomething.Core.Events;
 
 namespace OrdersSomething.Command.Api.Features.Properties.Commands;
 
-public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<PropertyUpsertedEvent> producer) : IRequestHandler<UpsertPropertyCommand>
+public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<PropertyUpsertedEvent> producer) : IRequestHandler<UpsertPropertyCommand, UpsertPropertyResponse>
 {
-    public async Task Handle(UpsertPropertyCommand request, CancellationToken cancellationToken)
+    public async Task<UpsertPropertyResponse> Handle(UpsertPropertyCommand request, CancellationToken cancellationToken)
     {
         var property = await GetOrAdd(request.Id, cancellationToken);
 
@@ -15,7 +15,6 @@ public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<Propert
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Wyślij event do Redpandy (Kafki)
         await producer.Produce(new PropertyUpsertedEvent
         {
             Id = property.Id,
@@ -24,6 +23,10 @@ public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<Propert
             Description = property.Description,
             IsDeleted = property.IsDeleted
         }, cancellationToken);
+        
+        return new UpsertPropertyResponse() { 
+            Id = property.Id
+        };
     }
 
     private async Task<Models.Properties> GetOrAdd(Guid id, CancellationToken ct)

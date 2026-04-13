@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using OrdersSomething.Core.Events;
+using OrdersSomething.Core.Middleware;
 using OrdersSomething.Query.Api;
 using OrdersSomething.Query.Api.Consumers;
 
@@ -31,6 +32,7 @@ builder.Services.AddMassTransit(x =>
     x.AddRider(rider =>
     {
         rider.AddConsumer<PropertyUpsertedConsumer>();
+        rider.AddConsumer<PropertyDeletedConsumer>();
 
         rider.UsingKafka((context, k) =>
         {
@@ -40,6 +42,12 @@ builder.Services.AddMassTransit(x =>
             {
                 e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
                 e.ConfigureConsumer<PropertyUpsertedConsumer>(context);
+            });
+
+            k.TopicEndpoint<PropertyDeletedEvent>("property-deleted-topic", "query-service-group", e =>
+            {
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                e.ConfigureConsumer<PropertyDeletedConsumer>(context);
             });
         });
     });
@@ -56,6 +64,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// 6. Error handler (Middleware)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors("AllowAll"); 
 
