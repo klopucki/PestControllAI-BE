@@ -15,23 +15,23 @@ public class DevicesController(IMediator mediator) : ControllerBase
         return Ok();
     }
 
-    [HttpPatch]
-    [Route("listening")]
-    public async Task<IActionResult> UpdateListeningDevice([FromBody] UpdateListeningCommand command)
-    {
-        await mediator.Send(command);
-        return Ok();
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertDeviceCommand command)
     {
-        await mediator.Send(command);
-        return Ok();
+        var upsertDeviceResponse = await mediator.Send(command);
+        return Ok(upsertDeviceResponse);
     }
 
     [HttpPut]
     public async Task<IActionResult> Modify([FromBody] UpsertDeviceCommand command)
+    {
+        await mediator.Send(command);
+        return Ok();
+    }
+
+    [HttpPatch]
+    [Route("listening")]
+    public async Task<IActionResult> UpdateListeningDevice([FromBody] UpdateListeningCommand command)
     {
         await mediator.Send(command);
         return Ok();

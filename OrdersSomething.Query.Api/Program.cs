@@ -24,7 +24,12 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 // 3. MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
-// 4. MassTransit + Redpanda (Kafka Consumer)
+// 4. Mapster Configuration (GLOBAL)
+// TypeAdapterConfig<Devices, DeviceDto>
+//     .NewConfig()
+//     .Map(dest => dest.PropertyId, src => src.PropertiesId);
+
+// 5. MassTransit + Redpanda (Kafka Consumer)
 builder.Services.AddMassTransit(x =>
 {
     x.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context));
@@ -33,6 +38,8 @@ builder.Services.AddMassTransit(x =>
     {
         rider.AddConsumer<PropertyUpsertedConsumer>();
         rider.AddConsumer<PropertyDeletedConsumer>();
+        rider.AddConsumer<DeviceUpsertedConsumer>();
+        rider.AddConsumer<DeviceDeletedConsumer>();
 
         rider.UsingKafka((context, k) =>
         {
@@ -44,16 +51,28 @@ builder.Services.AddMassTransit(x =>
                 e.ConfigureConsumer<PropertyUpsertedConsumer>(context);
             });
 
+            k.TopicEndpoint<DeviceUpsertedEvent>("device-upserted-topic", "query-service-group", e =>
+            {
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                e.ConfigureConsumer<DeviceUpsertedConsumer>(context);
+            });
+
             k.TopicEndpoint<PropertyDeletedEvent>("property-deleted-topic", "query-service-group", e =>
             {
                 e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
                 e.ConfigureConsumer<PropertyDeletedConsumer>(context);
             });
+
+            k.TopicEndpoint<DeviceDeletedEvent>("device-deleted-topic", "query-service-group", e =>
+            {
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                e.ConfigureConsumer<DeviceDeletedConsumer>(context);
+            });
         });
     });
 });
 
-// 5. Konfiguracja CORS
+// 6. Konfiguracja CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -65,7 +84,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 6. Error handler (Middleware)
+// 7. Error handler (Middleware)
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors("AllowAll"); 

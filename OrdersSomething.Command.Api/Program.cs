@@ -30,7 +30,9 @@ builder.Services.AddMassTransit(x =>
     x.AddRider(rider =>
     {
         rider.AddProducer<PropertyUpsertedEvent>("property-upserted-topic");
+        rider.AddProducer<DeviceUpsertedEvent>("device-upserted-topic");
         rider.AddProducer<PropertyDeletedEvent>("property-deleted-topic");
+        rider.AddProducer<DeviceDeletedEvent>("device-deleted-topic");
 
         rider.UsingKafka((context, k) =>
         {

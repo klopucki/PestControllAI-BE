@@ -1,8 +1,6 @@
-﻿using MediatR;
+﻿namespace OrdersSomething.Query.Api.Features.Devices;
 
-namespace OrdersSomething.Command.Api.Features.Devices.Commands;
-
-public class UpsertDeviceCommand : IRequest<UpsertDeviceResponse>
+public class DeviceDto
 {
     public Guid Id { get; set; } // pk
     public Guid PropertiesId { get; set; } // fk
@@ -13,9 +11,4 @@ public class UpsertDeviceCommand : IRequest<UpsertDeviceResponse>
     public bool IsDeleted { get; set; } // boolean (default: false)
     public DateTime LastHeartbeat { get; set; } // timestamp
     public DateTime CreatedAt { get; set; } // timestamp
-}
-
-public class UpsertDeviceResponse
-{
-    public Guid Id { get; set; }
 }

@@ -9,6 +9,15 @@ namespace OrdersSomething.Query.Api.Controllers;
 [Route("api/[controller]")]
 public class DevicesController(IMediator mediator) : ControllerBase
 {
+    [Route("{deviceId}")]
+    [HttpGet]
+    public async Task<IActionResult> GetById([FromRoute] Guid deviceId)
+    {
+        var query = new GetDevicesByIdQuery(deviceId);
+        var result = await mediator.Send(query);
+        return Ok(result);
+    }
+    
     [Route("property/{propertyId}")]
     [HttpGet]
     public async Task<IActionResult> GetByPropertyId([FromRoute] Guid propertyId)
