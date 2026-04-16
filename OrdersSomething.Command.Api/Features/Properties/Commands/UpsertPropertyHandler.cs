@@ -1,11 +1,11 @@
 ﻿using MassTransit;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
 
 namespace OrdersSomething.Command.Api.Features.Properties.Commands;
 
-public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<PropertyUpsertedEvent> producer) : IRequestHandler<UpsertPropertyCommand, UpsertPropertyResponse>
+public class UpsertPropertyHandler(IPropertiesRepository repository, ITopicProducer<PropertyUpsertedEvent> producer)
+    : IRequestHandler<UpsertPropertyCommand, UpsertPropertyResponse>
 {
     public async Task<UpsertPropertyResponse> Handle(UpsertPropertyCommand request, CancellationToken cancellationToken)
     {
@@ -13,7 +13,7 @@ public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<Propert
 
         property.upsert(request);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await repository.SaveAsync(property, cancellationToken);
 
         await producer.Produce(new PropertyUpsertedEvent
         {
@@ -23,31 +23,22 @@ public class UpsertPropertyHandler(MyDbContext dbContext, ITopicProducer<Propert
             Description = property.Description,
             IsDeleted = property.IsDeleted
         }, cancellationToken);
-        
-        return new UpsertPropertyResponse() { 
-            Id = property.Id
-        };
+
+        return new UpsertPropertyResponse { Id = property.Id };
     }
 
     private async Task<Models.Properties> GetOrAdd(Guid id, CancellationToken ct)
     {
         if (id != Guid.Empty)
         {
-            var existing = await dbContext.Properties
-                .FirstOrDefaultAsync(p => p.Id == id, ct);
-            
-            if (existing != null) return existing;
+            return await repository.GetByIdAsync(id, ct);
         }
 
-        var @new = new Models.Properties 
-        { 
+        return new Models.Properties
+        {
             Id = id == Guid.Empty ? Guid.NewGuid() : id,
-            UserId = new Guid("99999999-9999-9999-9999-999999999991"), 
+            UserId = new Guid("99999999-9999-9999-9999-999999999991"),
             CreatedAt = DateTime.UtcNow
         };
-
-        dbContext.Properties.Add(@new);
-        
-        return @new;
     }
 }

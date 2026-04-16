@@ -1,61 +1,51 @@
 ﻿using MassTransit;
-using MassTransit.KafkaIntegration.Activities;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
+using OrdersSomething.Core.Exceptions;
 
 namespace OrdersSomething.Command.Api.Features.Devices.Commands;
 
-public class UpsertDeviceHandler(MyDbContext dbContext, ITopicProducer<DeviceUpsertedEvent> producer)
+public class UpsertDeviceHandler(IDevicesRepository repository, ITopicProducer<DeviceUpsertedEvent> producer)
     : IRequestHandler<UpsertDeviceCommand, UpsertDeviceResponse>
 {
     public async Task<UpsertDeviceResponse> Handle(UpsertDeviceCommand request, CancellationToken cancellationToken)
     {
-        var property = await GetOrAdd(request.Id, request.PropertiesId, cancellationToken);
+        var device = await GetOrAdd(request.Id, request.PropertiesId, cancellationToken) 
+            ?? throw new EntityNotFoundException(nameof(Models.Devices), request.Id);
 
-        property.upsert(request);
+        device.upsert(request);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await repository.SaveAsync(device, cancellationToken);
 
         await producer.Produce(new DeviceUpsertedEvent
         {
-            Id = property.Id,
-            Name = property.Name,
-            Type = property.Type,
-            Status = property.Status,
-            IsListening = property.IsListening,
-            IsDeleted = property.IsDeleted,
-            LastHeartbeat = property.LastHeartbeat,
-            CreatedAt = property.CreatedAt,
-            
-            PropertiesId = property.PropertiesId
+            Id = device.Id,
+            Name = device.Name,
+            Type = device.Type,
+            Status = device.Status,
+            IsListening = device.IsListening,
+            IsDeleted = device.IsDeleted,
+            LastHeartbeat = device.LastHeartbeat,
+            CreatedAt = device.CreatedAt,
+            PropertiesId = device.PropertiesId
         }, cancellationToken);
 
-        return new UpsertDeviceResponse()
-        {
-            Id = property.Id
-        };
+        return new UpsertDeviceResponse { Id = device.Id };
     }
 
     private async Task<Models.Devices> GetOrAdd(Guid id, Guid propertiesId, CancellationToken ct)
     {
         if (id != Guid.Empty)
         {
-            var existing = await dbContext.Devices
-                .FirstOrDefaultAsync(p => p.Id == id, ct);
-
+            var existing = await repository.GetByIdAsync(id, ct);
             if (existing != null) return existing;
         }
 
-        var @new = new Models.Devices()
+        return new Models.Devices
         {
             Id = id == Guid.Empty ? Guid.NewGuid() : id,
             PropertiesId = propertiesId,
             CreatedAt = DateTime.UtcNow
         };
-
-        dbContext.Devices.Add(@new);
-
-        return @new;
     }
 }

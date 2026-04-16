@@ -1,7 +1,7 @@
 ﻿using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using OrdersSomething.Tests.Exceptions;
+using OrdersSomething.Core.Exceptions;
 
 namespace OrdersSomething.Query.Api.Features.Properties;
 

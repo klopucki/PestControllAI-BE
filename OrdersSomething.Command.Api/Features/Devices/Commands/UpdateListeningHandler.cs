@@ -1,32 +1,28 @@
 ﻿using MassTransit;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
+using OrdersSomething.Core.Exceptions;
 
 namespace OrdersSomething.Command.Api.Features.Devices.Commands;
 
-public class UpdateListeningHandler(MyDbContext dbContext, ITopicProducer<DeviceListeningChangedEvent> producer) : IRequestHandler<UpdateListeningCommand, Unit>
+public class UpdateListeningHandler(IDevicesRepository repository, ITopicProducer<DeviceListeningChangedEvent> producer)
+    : IRequestHandler<UpdateListeningCommand, Unit>
 {
     public async Task<Unit> Handle(UpdateListeningCommand request, CancellationToken cancellationToken)
     {
-        var device = await dbContext.Devices
-            .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
-
-        if (device == null)
-        {
-            throw new KeyNotFoundException($"Property with id {request.Id} does not exist!");
-        }
+        var device = await repository.GetByIdAsync(request.Id, cancellationToken)
+                     ?? throw new EntityNotFoundException(nameof(Devices), request.Id);
 
         device.IsListening = request.IsListening;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await repository.SaveAsync(device, cancellationToken);
 
-        await producer.Produce(new DeviceListeningChangedEvent()
+        await producer.Produce(new DeviceDeletedEvent
         {
             Id = device.Id,
-            IsListening = device.IsListening,
+            IsDeleted = device.IsDeleted,
         }, cancellationToken);
-        
+
         return Unit.Value;
     }
 }

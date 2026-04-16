@@ -1,8 +1,8 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
+using OrdersSomething.Core.Exceptions;
 using OrdersSomething.Query.Api.Models;
-using OrdersSomething.Tests.Exceptions;
 
 namespace OrdersSomething.Query.Api.Consumers;
 

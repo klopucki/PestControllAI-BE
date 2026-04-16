@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using OrdersSomething.Tests.Exceptions;
+using OrdersSomething.Core.Exceptions;
 
 namespace OrdersSomething.Core.Middleware;
 

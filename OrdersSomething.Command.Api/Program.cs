@@ -3,6 +3,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using OrdersSomething.Command.Api;
+using OrdersSomething.Command.Api.Features.Devices.Commands;
+using OrdersSomething.Command.Api.Features.Properties.Commands;
 using OrdersSomething.Core.Events;
 using OrdersSomething.Core.Middleware;
 
@@ -11,16 +13,16 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Serwisy kontrolerów i Swaggera
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Command API", Version = "v1" });
-});
+builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Command API", Version = "v1" }); });
 
 // 2. Baza i MediatR
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+builder.Services.AddScoped<IPropertiesRepository, PropertiesRepository>();
+builder.Services.AddScoped<IDevicesRepository, DevicesRepository>();
 
 // 3. MassTransit + Redpanda (Kafka)
 builder.Services.AddMassTransit(x =>
@@ -35,19 +37,17 @@ builder.Services.AddMassTransit(x =>
         rider.AddProducer<DeviceDeletedEvent>("device-deleted-topic");
         rider.AddProducer<DeviceListeningChangedEvent>("device-listening-changed-topic");
 
-        rider.UsingKafka((context, k) =>
-        {
-            k.Host("localhost:29092");
-        });
+        rider.UsingKafka((context, k) => { k.Host("localhost:29092"); });
     });
 });
 
 // 4. Konfiguracja CORS
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAll", p => 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", p =>
         p.AllowAnyOrigin()
-         .AllowAnyMethod()
-         .AllowAnyHeader());
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 });
 
 var app = builder.Build();
@@ -61,10 +61,7 @@ app.UseCors("AllowAll");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Command API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Command API v1"); });
 }
 
 app.UseHttpsRedirection();
@@ -76,5 +73,7 @@ app.Run();
 
 namespace OrdersSomething.Command.Api
 {
-    public partial class Program { }
+    public partial class Program
+    {
+    }
 }

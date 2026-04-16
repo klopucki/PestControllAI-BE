@@ -1,4 +1,4 @@
-﻿namespace OrdersSomething.Tests.Exceptions;
+﻿namespace OrdersSomething.Core.Exceptions;
 
 public class EntityNotFoundException(string name, Guid id) : Exception($"Entity {name} with id {id} not found!")
 {

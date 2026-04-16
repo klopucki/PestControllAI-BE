@@ -1,23 +1,21 @@
 ﻿using MassTransit;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OrdersSomething.Core.Events;
-using OrdersSomething.Tests.Exceptions;
+using OrdersSomething.Core.Exceptions;
 
 namespace OrdersSomething.Command.Api.Features.Properties.Commands;
 
-public class DeletePropertyHandler(MyDbContext dbContext, ITopicProducer<PropertyDeletedEvent> producer)
+public class DeletePropertyHandler(IPropertiesRepository repository, ITopicProducer<PropertyDeletedEvent> producer)
     : IRequestHandler<DeletePropertyCommand, Unit>
 {
     public async Task<Unit> Handle(DeletePropertyCommand request, CancellationToken cancellationToken)
     {
-        Models.Properties property =
-            await dbContext.Properties.FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(Properties), request.Id);
+        var property = await repository.GetByIdAsync(request.Id, cancellationToken)
+                       ?? throw new EntityNotFoundException(nameof(Properties), request.Id);
 
         property.IsDeleted = request.IsDeleted;
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await repository.SaveAsync(property, cancellationToken);
 
         await producer.Produce(new PropertyDeletedEvent
         {
