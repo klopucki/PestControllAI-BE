@@ -26,5 +26,6 @@ public class Devices
         IsDeleted = request.IsDeleted;
         LastHeartbeat = request.LastHeartbeat;
         CreatedAt = request.CreatedAt;
+        PropertiesId = request.PropertiesId;
     }
 }

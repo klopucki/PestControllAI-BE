@@ -36,6 +36,15 @@ public class DevicesFixtures(HttpClientFixture fixture) : IClassFixture<HttpClie
         };
     }
 
+    internal static UpdateListeningCommand UpdateListeningDeviceCommand(Guid deviceId, bool isListening)
+    {
+        return new UpdateListeningCommand()
+        {
+            Id = deviceId,
+            IsListening = isListening
+        };
+    }
+
     internal static DeleteDeviceCommand DeleteDeviceCommand(Guid deviceId, bool isDeleted)
     {
         return new DeleteDeviceCommand
@@ -62,6 +71,12 @@ public class DevicesFixtures(HttpClientFixture fixture) : IClassFixture<HttpClie
     public async Task DeleteDevice(DeleteDeviceCommand command)
     {
         var response = await fixture.CommandClient.PatchAsJsonAsync(DEVICE_URL, command);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task UpdateListeningDevice(UpdateListeningCommand command)
+    {
+        var response = await fixture.CommandClient.PatchAsJsonAsync(DEVICE_URL + "/listening", command);
         response.EnsureSuccessStatusCode();
     }
 

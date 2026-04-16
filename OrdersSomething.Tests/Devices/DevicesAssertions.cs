@@ -27,4 +27,9 @@ internal class DevicesAssertions
     {
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    public static void AssertDevice(UpdateListeningCommand expected, DeviceDto? actual)
+    {
+        actual.IsDeleted.Should().Be(expected.IsListening);
+    }
 }

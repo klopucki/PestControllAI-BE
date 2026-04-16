@@ -40,6 +40,7 @@ builder.Services.AddMassTransit(x =>
         rider.AddConsumer<PropertyDeletedConsumer>();
         rider.AddConsumer<DeviceUpsertedConsumer>();
         rider.AddConsumer<DeviceDeletedConsumer>();
+        rider.AddConsumer<DeviceListeningChangedConsumer>();
 
         rider.UsingKafka((context, k) =>
         {
@@ -67,6 +68,12 @@ builder.Services.AddMassTransit(x =>
             {
                 e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
                 e.ConfigureConsumer<DeviceDeletedConsumer>(context);
+            });
+
+            k.TopicEndpoint<DeviceListeningChangedEvent>("device-listening-changed-topic", "query-service-group", e =>
+            {
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                e.ConfigureConsumer<DeviceListeningChangedConsumer>(context);
             });
         });
     });

@@ -65,6 +65,27 @@ public class DevicesE2ETests(HttpClientFixture fixture) : DevicesFixtures(fixtur
     }
 
     [Fact]
+    public async Task ShouldStopListetningDevice()
+    {
+        // given
+        var existingDeviceCommand = CreateDeviceCommand();
+        var existingDevice = await CreateDevice(existingDeviceCommand);
+
+        var updateListeningCommand = UpdateListeningDeviceCommand(existingDevice.Id, false);
+
+        // when
+        await UpdateListeningDevice(updateListeningCommand);
+
+        // then
+        await TestHelper.WaitUntil(async () =>
+        {
+            var actualDevice = await GetDeviceById(existingDevice.Id);
+
+            DevicesAssertions.AssertDevice(updateListeningCommand, actualDevice);
+        });
+    }
+
+    [Fact]
     public async Task ShouldNotDeviceDeleteAndThrowEntityNotFoundException()
     {
         // given

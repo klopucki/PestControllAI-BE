@@ -1,9 +1,11 @@
-﻿using MediatR;
+﻿using MassTransit;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OrdersSomething.Core.Events;
 
 namespace OrdersSomething.Command.Api.Features.Devices.Commands;
 
-public class UpdateListeningHandler(MyDbContext dbContext) : IRequestHandler<UpdateListeningCommand, Unit>
+public class UpdateListeningHandler(MyDbContext dbContext, ITopicProducer<DeviceListeningChangedEvent> producer) : IRequestHandler<UpdateListeningCommand, Unit>
 {
     public async Task<Unit> Handle(UpdateListeningCommand request, CancellationToken cancellationToken)
     {
@@ -19,6 +21,12 @@ public class UpdateListeningHandler(MyDbContext dbContext) : IRequestHandler<Upd
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        await producer.Produce(new DeviceListeningChangedEvent()
+        {
+            Id = device.Id,
+            IsListening = device.IsListening,
+        }, cancellationToken);
+        
         return Unit.Value;
     }
 }
